@@ -1,10 +1,12 @@
 # About
 
+A plugin to add heading number in neovim
+
 # Requires
 
-# SetUp
+- `neovim`>=0.7
 
-# Api
+# SetUp
 
 # Show
 

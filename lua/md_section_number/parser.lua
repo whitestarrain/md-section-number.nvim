@@ -61,9 +61,9 @@ function M.get_heading_lines(all_lines)
     end
     print(stack:is_empty())
     if stack:is_empty() then
-      local is_heading, length = judgeHeadingLine(line)
+      local is_heading, level = judgeHeadingLine(line)
       if is_heading then
-        table.insert(heading_lines, { line_index, line, length })
+        table.insert(heading_lines, { line_index, line, level })
       end
     end
   end
