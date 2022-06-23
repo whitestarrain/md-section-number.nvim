@@ -11,7 +11,7 @@ function M.replaceHeadingPrefix(str, pattern, prefix, level)
   if nil == s or s ~= level + 2 then
     return string.sub(str, 0, level + 1) .. prefix .. " " .. string.sub(str, level + 2, -1)
   end
-  return string.sub(str, 0, s - 1) .. prefix .. string.sub(str, e, -1)
+  return string.sub(str, 0, s - 1) .. prefix .. string.sub(str, e + 1, -1)
 end
 
 function M.get_heading_number(heading_lines)
