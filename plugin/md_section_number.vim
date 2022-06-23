@@ -12,7 +12,7 @@ if !has('nvim')
     finish
 endif
 
-command! mdSectionNumber lua require('md_section_number').update_heading_number()
+command! MDSectionNumber lua require('md_section_number').update_heading_number()
 
 let &cpo = s:save_cpo " and restore after
 unlet s:save_cpo
