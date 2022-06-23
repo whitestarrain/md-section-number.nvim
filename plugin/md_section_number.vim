@@ -12,7 +12,7 @@ if !has('nvim')
     finish
 endif
 
-lua require('tocNumber').galaxyline_augroup()
+command! mdSectionNumber lua require('md_section_number').update_heading_number()
 
 let &cpo = s:save_cpo " and restore after
 unlet s:save_cpo
