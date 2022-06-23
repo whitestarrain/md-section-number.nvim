@@ -13,7 +13,8 @@ local function update_heading_number()
     local level = heading[3]
     local heading_number = heading[4]
     replacer.update_line(
-      line_number,
+      line_number - 1,
+      string.len(heading_content),
       replacer.replaceHeadingPrefix(heading_content, replacer.heading_number_pattern, heading_number, level)
     )
   end

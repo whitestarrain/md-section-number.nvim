@@ -17,7 +17,7 @@ end
 
 local function judgeHeadingLine(line)
   local s, e = string.find(line, M.heading_pattern)
-  local length = s and e - s + 1 or 0
+  local length = s and e - s or 0
   return nil ~= s, length
 end
 

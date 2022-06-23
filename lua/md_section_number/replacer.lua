@@ -1,17 +1,15 @@
-local parser = require("md_section_number.parser")
-
 local M = {}
 
 M.heading_number_pattern = "[%d%.]+"
 
-function M.update_line(start_line, line_content)
-  vim.api.nvim_buf_set_lines(0, start_line, start_line + 1, false, { line_content })
+function M.update_line(start_line, line_length, line_content)
+  vim.api.nvim_buf_set_text(0, start_line, 0, start_line, line_length, { line_content })
 end
 
 function M.replaceHeadingPrefix(str, pattern, prefix, level)
   local s, e = string.find(str, pattern)
   if nil == s or s ~= level + 2 then
-    return prefix .. " " .. str
+    return string.sub(str, 0, level + 1) .. prefix .. " " .. string.sub(str, level + 2, -1)
   end
   return string.sub(str, 0, s - 1) .. prefix .. string.sub(str, e, -1)
 end
