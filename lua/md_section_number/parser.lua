@@ -35,7 +35,6 @@ function M.get_heading_lines(all_lines)
       if pair[1] == pair[2] then
         if stack:is_empty() then
           if -1 ~= start_pair_location and -1 == end_pair_location then
-            print(pair_index)
             stack:push(pair_index)
           end
         else
@@ -59,7 +58,6 @@ function M.get_heading_lines(all_lines)
         end
       end
     end
-    print(stack:is_empty())
     if stack:is_empty() then
       local is_heading, level = judgeHeadingLine(line)
       if is_heading then
