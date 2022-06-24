@@ -32,11 +32,10 @@ function M.update_heading_number(is_clear)
     local heading_content = heading[2]
     local level = heading[3]
     local heading_number = heading[4]
-    replacer.update_line(
-      line_number - 1,
-      string.len(heading_content),
-      replacer.replaceHeadingNumber(heading_content, heading_number, level, is_clear)
-    )
+    local updated_heading_content = replacer.replaceHeadingNumber(heading_content, heading_number, level, is_clear)
+    if updated_heading_content ~= heading_content then
+      replacer.update_line(line_number - 1, string.len(heading_content), updated_heading_content)
+    end
   end
 end
 
