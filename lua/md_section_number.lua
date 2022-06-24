@@ -35,7 +35,7 @@ function M.update_heading_number(is_clear)
     replacer.update_line(
       line_number - 1,
       string.len(heading_content),
-      replacer.replaceHeadingNumber(heading_content, replacer.heading_number_pattern, heading_number, level, is_clear)
+      replacer.replaceHeadingNumber(heading_content, heading_number, level, is_clear)
     )
   end
 end
