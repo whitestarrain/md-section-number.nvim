@@ -3,15 +3,19 @@ local M = {}
 M.heading_number_base_pattern = "%d+%."
 M.max_level = 4
 
-local function get_pattern(level)
-  local pattern = ""
-  if not level then
-    return pattern
-  end
-  for _ = 1, level do
+local function get_heading_number_index(str)
+  local pattern = M.heading_number_base_pattern
+  local max_s, max_e
+  repeat
+    local s, e = string.find(str, pattern)
     pattern = pattern .. M.heading_number_base_pattern
-  end
-  return pattern
+    if s ~= nil then
+      max_s = s
+      max_e = e
+    end
+  until s == nil
+
+  return max_s, max_e
 end
 
 function M.update_line(start_line, line_length, line_content)
@@ -29,8 +33,7 @@ function M.replaceHeadingNumber(str, heading_number, level, is_clear)
   if string.len(heading_number) > 0 then
     heading_number = " " .. heading_number
   end
-  local pattern = get_pattern(level)
-  local s, e = string.find(str, pattern)
+  local s, e = get_heading_number_index(str)
   if nil == s or s ~= level + 2 then
     return string.rep("#", level) .. heading_number .. " " .. vim.trim(string.sub(str, level + 1, -1))
   end
