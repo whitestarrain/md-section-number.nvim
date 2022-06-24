@@ -50,21 +50,20 @@ function M.get_heading_number(heading_lines)
       goto continue
     end
 
-    if not level_depth[level] or 0 == level_depth[level] then
+    if not level_depth[level] then
+      level_depth[level] = 0
+    end
+    if heading_lines[i][3] < heading_lines[i - 1][3] then
+      level_depth[level] = level_depth[level] + 1
+    end
+    if heading_lines[i][3] == heading_lines[i - 1][3] then
+      level_depth[level] = level_depth[level] + 1
+    end
+    if heading_lines[i][3] > heading_lines[i - 1][3] then
+      for inner_level = heading_lines[i - 1][3] + 1, heading_lines[i][3] - 1 do
+        level_depth[inner_level] = 0
+      end
       level_depth[level] = 1
-    else
-      if heading_lines[i][3] < heading_lines[i - 1][3] then
-        level_depth[level] = level_depth[level] + 1
-      end
-      if heading_lines[i][3] == heading_lines[i - 1][3] then
-        level_depth[level] = level_depth[level] + 1
-      end
-      if heading_lines[i][3] > heading_lines[i - 1][3] then
-        for inner_level = heading_lines[i - 1][3] + 1, heading_lines[i][3] - 1 do
-          level_depth[inner_level] = 0
-        end
-        level_depth[level] = 1
-      end
     end
 
     ::continue::
