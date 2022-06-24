@@ -36,7 +36,7 @@ function M.get_heading_lines(all_lines)
             stack:push(pair_index)
           end
         else
-          if -1 ~= start_pair_location then
+          if -1 ~= start_pair_location and -1 == end_pair_location then
             if pair_index == stack:peek() then
               stack:pop()
             else
