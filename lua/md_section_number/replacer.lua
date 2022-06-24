@@ -7,19 +7,22 @@ function M.update_line(start_line, line_length, line_content)
   vim.api.nvim_buf_set_text(0, start_line, 0, start_line, line_length, { line_content })
 end
 
-function M.replaceHeadingPrefix(str, pattern, prefix, level, is_clear)
+function M.replaceHeadingNumber(str, pattern, heading_number, level, is_clear)
   local max_level = M.max_level
   if is_clear then
     max_level = 0
   end
   if level > max_level then
-    prefix = ""
+    heading_number = ""
+  end
+  if string.len(heading_number) > 0 then
+    heading_number = " " .. heading_number
   end
   local s, e = string.find(str, pattern)
   if nil == s or s ~= level + 2 then
-    return string.sub(str, 0, level + 1) .. prefix .. " " .. string.sub(str, level + 2, -1)
+    return string.sub(str, 0, level) .. heading_number .. " " .. string.sub(str, level + 2, -1)
   end
-  return string.sub(str, 0, s - 1) .. prefix .. string.sub(str, e + 1, -1)
+  return string.sub(str, 0, s - 2) .. heading_number .. " " .. string.sub(str, e + 2, -1)
 end
 
 function M.get_heading_number(heading_lines)
