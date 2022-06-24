@@ -1,12 +1,20 @@
 local M = {}
 
 M.heading_number_pattern = "[%d%.]+"
+M.max_level = 4
 
 function M.update_line(start_line, line_length, line_content)
   vim.api.nvim_buf_set_text(0, start_line, 0, start_line, line_length, { line_content })
 end
 
-function M.replaceHeadingPrefix(str, pattern, prefix, level)
+function M.replaceHeadingPrefix(str, pattern, prefix, level, is_clear)
+  local max_level = M.max_level
+  if is_clear then
+    max_level = 0
+  end
+  if level > max_level then
+    prefix = ""
+  end
   local s, e = string.find(str, pattern)
   if nil == s or s ~= level + 2 then
     return string.sub(str, 0, level + 1) .. prefix .. " " .. string.sub(str, level + 2, -1)
@@ -49,6 +57,10 @@ function M.get_heading_number(heading_lines)
     table.insert(heading_lines[i], heading_number)
   end
   return heading_lines
+end
+
+function M.setup(opts)
+  M.max_level = opts.max_level or M.max_level
 end
 
 return M

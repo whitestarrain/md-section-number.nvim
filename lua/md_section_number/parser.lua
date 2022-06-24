@@ -1,4 +1,4 @@
-local Stack = require("md_section_number.stack")
+local Stack = require("md_section_number.common.stack")
 local M = {}
 
 M.ignore_pairs = {
@@ -8,8 +8,6 @@ M.ignore_pairs = {
 }
 
 M.heading_pattern = "^#+ "
-
-M.max_level = 4
 
 function M.add_pairs(startPair, endPair)
   table.insert(M.ignore_pairs, { startPair, endPair })
@@ -66,6 +64,10 @@ function M.get_heading_lines(all_lines)
     end
   end
   return heading_lines
+end
+
+function M.setup(opt)
+  M.ignore_pairs = opt.ignore_pairs or M.ignore_pairs
 end
 
 return M

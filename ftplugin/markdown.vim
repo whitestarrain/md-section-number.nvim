@@ -12,7 +12,8 @@ if !has('nvim')
     finish
 endif
 
-command! MDSectionNumber lua require('md_section_number').update_heading_number()
+command! -buffer MDUpdateNumber lua require('md_section_number').update_heading_number()
+command! -buffer MDClearNumber lua require('md_section_number').clear_heading_number()
 
 let &cpo = s:save_cpo " and restore after
 unlet s:save_cpo
