@@ -18,12 +18,14 @@ A plugin to add heading number in neovim
 
 ```lua
 require("md_section_number").setup({
+--[[
   max_level = 4,
   ignore_pairs = {
     { "```", "```" },
     { "\\~\\~\\~", "\\~\\~\\~" },
     { "<!--", "-->" },
   },
+]]
 })
 ```
 
