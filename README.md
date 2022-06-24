@@ -1,6 +1,10 @@
+# Example
+
+![](./image/show.gif)
+
 # About
 
-A plugin to add heading number in neovim
+A plugin to update heading number for markdown
 
 # Requires
 
@@ -29,7 +33,8 @@ require("md_section_number").setup({
 })
 ```
 
-# Show
+# Use
 
-![](./image/show.gif)
+- `:MDClearNumber`
+- `:MDUpdateNumber`
 
