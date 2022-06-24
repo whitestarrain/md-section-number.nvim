@@ -18,7 +18,6 @@ function M.update_line(start_line, line_length, line_content)
   vim.api.nvim_buf_set_text(0, start_line, 0, start_line, line_length, { line_content })
 end
 
--- FIX: fix replace,拼接pattern
 function M.replaceHeadingNumber(str, heading_number, level, is_clear)
   local max_level = M.max_level
   if is_clear then
@@ -30,12 +29,12 @@ function M.replaceHeadingNumber(str, heading_number, level, is_clear)
   if string.len(heading_number) > 0 then
     heading_number = " " .. heading_number
   end
-  pattern = get_pattern(level)
+  local pattern = get_pattern(level)
   local s, e = string.find(str, pattern)
   if nil == s or s ~= level + 2 then
-    return string.sub(str, 0, level) .. heading_number .. " " .. string.sub(str, level + 2, -1)
+    return string.rep("#", level) .. heading_number .. " " .. vim.trim(string.sub(str, level + 1, -1))
   end
-  return string.sub(str, 0, s - 2) .. heading_number .. " " .. string.sub(str, e + 2, -1)
+  return string.rep("#", level) .. heading_number .. " " .. vim.trim(string.sub(str, e + 1, -1))
 end
 
 function M.get_heading_number(heading_lines)
