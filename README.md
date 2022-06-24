@@ -31,4 +31,5 @@ require("md_section_number").setup({
 
 # Show
 
+![](./image/show.gif)
 
