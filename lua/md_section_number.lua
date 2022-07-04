@@ -37,16 +37,16 @@ function M.update_heading_number(is_clear)
     return
   end
   for _, heading in ipairs(heading_lines) do
-    local line_number = heading[1]
+    local line_index = heading[1]
     local heading_content = heading[2]
     local level = heading[3]
     local heading_number = heading[4]
     local updated_heading_content = replacer.replaceHeadingNumber(heading_content, heading_number, level, is_clear)
     if
       updated_heading_content ~= heading_content
-      and judge_heading_by_line_number(start_line, end_line, line_number - 1)
+      and judge_heading_by_line_number(start_line, end_line, line_index)
     then
-      replacer.update_line(line_number - 1, string.len(heading_content), updated_heading_content)
+      replacer.update_line(line_index, string.len(heading_content), updated_heading_content)
     end
   end
 end
