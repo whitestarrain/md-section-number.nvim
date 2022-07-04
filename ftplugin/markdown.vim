@@ -3,7 +3,7 @@ if exists("b:md_section_number")
   finish
 endif
 
-command! -buffer MDUpdateNumber lua require('md_section_number').update_heading_number()
-command! -buffer MDClearNumber lua require('md_section_number').clear_heading_number()
+command! -buffer -range=% MDUpdateNumber lua require('md_section_number').update_heading_number()
+command! -buffer -range=% MDClearNumber lua require('md_section_number').clear_heading_number()
 
 let b:md_section_number = 1
