@@ -1,5 +1,6 @@
 local parser = require("md_section_number.parser")
 local replacer = require("md_section_number.replacer")
+local utils = require("md_section_number.common.utils")
 local M = {}
 
 local DEFAULT_OPTS = {
@@ -15,6 +16,13 @@ local function merge_options(conf)
   return vim.tbl_deep_extend("force", DEFAULT_OPTS, conf or {})
 end
 
+local function judge_heading_by_line_number(start_line, end_line, cur_line)
+  if start_line == -1 or end_line == -1 then
+    return true
+  end
+  return start_line <= cur_line and cur_line <= end_line
+end
+
 function M.setup(conf)
   local opts = merge_options(conf)
   parser.setup(opts)
@@ -22,6 +30,7 @@ function M.setup(conf)
 end
 
 function M.update_heading_number(is_clear)
+  local start_line, _, end_line, _ = utils.visual_selection_range()
   local heading_lines = parser.get_heading_lines(vim.api.nvim_buf_get_lines(0, 0, -1, false))
   heading_lines = replacer.get_heading_number(heading_lines)
   if nil == heading_lines or #heading_lines == 0 then
@@ -33,7 +42,10 @@ function M.update_heading_number(is_clear)
     local level = heading[3]
     local heading_number = heading[4]
     local updated_heading_content = replacer.replaceHeadingNumber(heading_content, heading_number, level, is_clear)
-    if updated_heading_content ~= heading_content then
+    if
+      updated_heading_content ~= heading_content
+      and judge_heading_by_line_number(start_line, end_line, line_number - 1)
+    then
       replacer.update_line(line_number - 1, string.len(heading_content), updated_heading_content)
     end
   end
