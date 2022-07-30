@@ -4,6 +4,11 @@ local M = {}
 function M.visual_selection_range()
   local _, csrow, cscol, _ = unpack(vim.fn.getpos("'<"))
   local _, cerow, cecol, _ = unpack(vim.fn.getpos("'>"))
+  -- col may be very very large (2147483647) when no selected text in nvim(0.7.0)
+  -- why?
+  if cscol > 100000 or cecol > 100000 then
+    return -1, -1, -1, 0
+  end
   if csrow < cerow or (csrow == cerow and cscol <= cecol) then
     return csrow - 1, cscol - 1, cerow - 1, cecol
   else
