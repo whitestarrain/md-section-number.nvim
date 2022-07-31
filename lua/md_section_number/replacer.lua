@@ -46,7 +46,7 @@ function M.get_heading_number(heading_lines)
   for i = 1, #heading_lines do
     local level = heading_lines[i][3]
     if i == 1 then
-      level_depth[i] = 1
+      level_depth[level] = 1
       goto continue
     end
 
