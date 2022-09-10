@@ -4,14 +4,15 @@ if exists("b:md_section_number")
 endif
 
 " https://stackoverflow.com/questions/10572996/passing-command-range-to-a-function
-function MdUpdateHeadingNumber() range
-  call v:lua.require('md_section_number').update_heading_number(a:firstline, a:lastline)
+" https://vi.stackexchange.com/questions/13161/specify-a-range-for-command-but-not-move-cursor
+function MdUpdateHeadingNumber(line1, line2) range
+  call v:lua.require('md_section_number').update_heading_number(a:line1, a:line2)
 endfunction
-function MdClearHeadingNumber() range
-  call v:lua.require('md_section_number').clear_heading_number(a:firstline, a:lastline)
+function MdClearHeadingNumber(line1, line2) range
+  call v:lua.require('md_section_number').clear_heading_number(a:line1, a:line2)
 endfunction
 
-command! -buffer -range=% MDUpdateNumber <line1>,<line2>call MdUpdateHeadingNumber()
-command! -buffer -range=% MDClearNumber <line1>,<line2>call MdClearHeadingNumber()
+command! -buffer -range=% MDUpdateNumber call MdUpdateHeadingNumber(<line1>,<line2>)
+command! -buffer -range=% MDClearNumber call MdClearHeadingNumber(<line1>,<line2>)
 
 let b:md_section_number = 1
