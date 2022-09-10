@@ -1,6 +1,5 @@
 local parser = require("md_section_number.parser")
 local replacer = require("md_section_number.replacer")
-local utils = require("md_section_number.common.utils")
 local M = {}
 
 local DEFAULT_OPTS = {
@@ -29,8 +28,7 @@ function M.setup(conf)
   replacer.setup(opts)
 end
 
-function M.update_heading_number(is_clear)
-  local start_line, _, end_line, _ = utils.visual_selection_range()
+function M._update_heading_number(is_clear, start_line, end_line)
   local heading_lines = parser.get_heading_lines(vim.api.nvim_buf_get_lines(0, 0, -1, false))
   heading_lines = replacer.get_heading_number(heading_lines)
   if nil == heading_lines or #heading_lines == 0 then
@@ -44,15 +42,19 @@ function M.update_heading_number(is_clear)
     local updated_heading_content = replacer.replaceHeadingNumber(heading_content, heading_number, level, is_clear)
     if
       updated_heading_content ~= heading_content
-      and judge_heading_by_line_number(start_line, end_line, line_index)
+      and judge_heading_by_line_number(start_line, end_line, line_index + 1)
     then
       replacer.update_line(line_index, string.len(heading_content), updated_heading_content)
     end
   end
 end
 
-function M.clear_heading_number()
-  M.update_heading_number(true)
+function M.update_heading_number(firstline, lastline)
+  M._update_heading_number(false, firstline, lastline)
+end
+
+function M.clear_heading_number(firstline, lastline)
+  M._update_heading_number(true, firstline, lastline)
 end
 
 return M
