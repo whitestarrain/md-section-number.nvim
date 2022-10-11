@@ -18,7 +18,7 @@ A plugin to update heading number for markdown
   Plug 'whitestarrain/md-section-number.nvim'
   ```
 
-# SetUp
+# SetUpp
 
 ```lua
 require("md_section_number").setup({
