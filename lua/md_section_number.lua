@@ -1,5 +1,5 @@
-local parser = require("md_section_number.parser")
-local replacer = require("md_section_number.replacer")
+local parser = require("md_section_number.title.parser")
+local replacer = require("md_section_number.title.replacer")
 local M = {}
 
 local DEFAULT_OPTS = {
@@ -36,7 +36,7 @@ local function get_headings(...)
   local heading_lines = {}
   if select("#", ...) == 3 then
     local start_line, end_line, offset = ...
-    for index, heading in ipairs(origin_heading_lines) do
+    for _, heading in ipairs(origin_heading_lines) do
       if judge_heading_by_line_number(start_line, end_line, heading[1] + 1) then
         table.insert(heading_lines, replacer.change_heading_level(heading, offset))
       else
