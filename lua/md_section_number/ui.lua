@@ -24,7 +24,15 @@ M.global = {
   BindWin = nil,
 }
 
-function M.clear_key_value()
+local bindBufGroup = vim.api.nvim_create_augroup("MdBindBufAutoCmd", {})
+
+function M.unbind()
+  if M.global.BindBuf then
+    vim.api.nvim_clear_autocmds({
+      group = bindBufGroup,
+      buffer = M.global.BindBuf,
+    })
+  end
   M.global = {}
 end
 
@@ -74,10 +82,14 @@ end
 local function render_headers(buf)
   vim.api.nvim_buf_set_option(buf, "modifiable", true)
   reload_headers()
+  -- get header text
   local all_headers_with_indent = {}
   for _, header in ipairs(M.global.MdHeaders) do
     table.insert(all_headers_with_indent, add_indent_for_header(header))
   end
+  -- clear
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, {})
+  -- reset
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, all_headers_with_indent)
   vim.api.nvim_buf_set_option(buf, "modifiable", false)
 end
@@ -97,7 +109,7 @@ function M.close(win)
   if not win then
     return
   end
-  M.clear_key_value()
+  M.unbind()
   vim.api.nvim_win_close(win, true)
 end
 
@@ -112,9 +124,11 @@ local function set_autocmd(buf)
   vim.api.nvim_create_autocmd("WinClosed", {
     buffer = buf,
     callback = function()
-      M.clear_key_value()
+      M.unbind()
     end,
   })
+  -- TODO: after write，reparse heading, and rerender
+  -- TODO: when move curosr，auto select side bar heading. (CursorHold event)
 end
 
 function M.open_side_window()
@@ -136,7 +150,6 @@ function M.toggle()
   end
 end
 
--- TODO: when change buffer，reload or close side window
--- TODO: after edit，reparse heading
+-- TODO: when switch to other buffer，reload or close side window. (global event) 
 
 return M
