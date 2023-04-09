@@ -19,7 +19,8 @@ end
 M.global = {
   MdBufNumber = nil,
   MdHeaders = nil,
-  CurrentWin = nil,
+  TocWin = nil,
+  TocBuf = nil,
   BindBuf = nil,
   BindWin = nil,
 }
@@ -79,8 +80,8 @@ local function reload_headers()
   M.global.MdHeaders = parser.get_heading_lines(vim.api.nvim_buf_get_lines(M.global.BindBuf, 0, -1, false))
 end
 
-local function render_headers(buf)
-  vim.api.nvim_buf_set_option(buf, "modifiable", true)
+local function render_headers()
+  vim.api.nvim_buf_set_option(M.global.TocBuf, "modifiable", true)
   reload_headers()
   -- get header text
   local all_headers_with_indent = {}
@@ -88,10 +89,10 @@ local function render_headers(buf)
     table.insert(all_headers_with_indent, add_indent_for_header(header))
   end
   -- clear
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, {})
+  vim.api.nvim_buf_set_lines(M.global.TocBuf, 0, -1, false, {})
   -- reset
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, all_headers_with_indent)
-  vim.api.nvim_buf_set_option(buf, "modifiable", false)
+  vim.api.nvim_buf_set_lines(M.global.TocBuf, 0, -1, false, all_headers_with_indent)
+  vim.api.nvim_buf_set_option(M.global.TocBuf, "modifiable", false)
 end
 
 function M.jump_header()
@@ -113,16 +114,36 @@ function M.close(win)
   vim.api.nvim_win_close(win, true)
 end
 
-local function set_mappings(win, buf)
-  vim.keymap.set("n", "<cr>", M.jump_header, { buffer = buf })
-  vim.keymap.set("n", "q", function()
-    M.close(win)
-  end, { buffer = buf })
+local function set_mappings()
+  local mappings = {
+    ["<cr>"] = M.jump_header,
+    q = function()
+      M.close(M.global.TocWin)
+    end,
+    r = function()
+      local origin_position = vim.api.nvim_win_get_cursor(M.global.TocWin)
+      render_headers()
+      local new_line_number = vim.api.nvim_buf_line_count(M.global.TocBuf)
+      if new_line_number == 0 then
+        return
+      end
+      local row = math.min(new_line_number, origin_position[1])
+      local line = vim.api.nvim_buf_get_lines(M.global.TocBuf, row - 1, row, false)[1]
+      if line == nil then
+        line = ""
+      end
+      local col = math.min(#line, origin_position[2])
+      vim.api.nvim_win_set_cursor(M.global.TocWin, { row, col })
+    end,
+  }
+  for k, v in pairs(mappings) do
+    vim.keymap.set("n", k, v, { buffer = M.global.TocBuf, silent = true, noremap = true })
+  end
 end
 
-local function set_autocmd(buf)
+local function set_autocmd()
   vim.api.nvim_create_autocmd("WinClosed", {
-    buffer = buf,
+    buffer = M.global.TocBuf,
     callback = function()
       M.unbind()
     end,
@@ -136,20 +157,21 @@ function M.open_side_window()
   M.global.BindWin = vim.api.nvim_get_current_win()
 
   local win, buf = create_side_window()
-  M.global.CurrentWin = win
-  render_headers(buf)
-  set_mappings(win, buf)
-  set_autocmd(buf)
+  M.global.TocWin = win
+  M.global.TocBuf = buf
+
+  render_headers()
+  set_mappings()
+  set_autocmd()
 end
 
 function M.toggle()
-  if M.global.CurrentWin then
-    M.close(M.global.CurrentWin)
+  if M.global.TocWin then
+    M.close(M.global.TocWin)
   else
     M.open_side_window()
   end
 end
 
--- TODO: when switch to other buffer，reload or close side window. (global event) 
-
+-- TODO: when switch to other buffer，reload or close side window. (global event)
 return M

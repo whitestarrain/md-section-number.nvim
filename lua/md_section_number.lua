@@ -1,5 +1,6 @@
 local parser = require("md_section_number.title.parser")
 local replacer = require("md_section_number.title.replacer")
+local ui = require("md_section_number.ui")
 local M = {}
 
 local DEFAULT_OPTS = {
@@ -85,6 +86,10 @@ end
 
 function M.header_increase(firstline, lastline)
   M._update_heading_number(true, firstline, lastline, 1)
+end
+
+function M.toggle_toc_ui()
+  ui.toggle()
 end
 
 return M
