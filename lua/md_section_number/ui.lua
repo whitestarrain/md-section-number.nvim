@@ -7,7 +7,8 @@ local M = {}
 M.options = {
   width = 30,
   position = "right",
-  indent_space_number = 1,
+  indent_space_number = 2,
+  header_prefix = "- ",
 }
 
 function M.setup(opts)
@@ -37,23 +38,26 @@ local function create_side_window()
   local win = vim.api.nvim_get_current_win()
   local move_to = move_tbl[M.options.position]
   vim.api.nvim_command("wincmd " .. move_to)
-  vim.opt_local["number"] = false
-  vim.opt_local["relativenumber"] = false
-  vim.opt_local["wrap"] = false
-  vim.opt_local["equalalways"] = false
   vim.api.nvim_win_set_width(win, M.options.width)
   local buf = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_win_set_buf(win, buf)
   vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
   vim.api.nvim_buf_set_option(buf, "filetype", "tagbar")
   vim.api.nvim_buf_set_option(buf, "modifiable", false)
+  vim.opt_local["number"] = false
+  vim.opt_local["relativenumber"] = false
+  vim.opt_local["wrap"] = false
+  vim.opt_local["equalalways"] = false
+  vim.opt_local["winfixwidth"] = true
+  vim.opt_local["list"] = false
+  vim.opt_local["spell"] = false
   return win, buf
 end
 
 local function add_indent_for_header(header)
   local header_str = header[2]
   local indent_str = string.rep(" ", M.options.indent_space_number)
-  header_str = vim.trim(header_str:gsub("#", "", header[3]))
+  header_str = M.options.header_prefix .. vim.trim(header_str:gsub("#", "", header[3]))
   if header[3] > 1 then
     header_str = string.rep(indent_str, header[3] - 1) .. header_str
   end
