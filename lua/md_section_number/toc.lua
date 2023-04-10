@@ -1,4 +1,4 @@
-local parser = require("md_section_number.title.parser")
+local parser = require("md_section_number.heading.parser")
 
 local M = {}
 
