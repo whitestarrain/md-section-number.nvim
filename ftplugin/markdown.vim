@@ -20,7 +20,7 @@ function MdHeaderIncrease(line1, line2) range
 endfunction
 
 function MdTocToggle()
-  call v:lua.require('md_section_number').toggle_toc_ui()
+  call v:lua.require('md_section_number').toggle_toc()
 endfunction
 
 command! -buffer -range=% MDUpdateNumber call MdUpdateHeadingNumber(<line1>,<line2>)

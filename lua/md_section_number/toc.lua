@@ -1,5 +1,3 @@
--- for test: vim.cmd([[let &runtimepath.="," . getcwd()]])
-
 local parser = require("md_section_number.title.parser")
 
 local M = {}
@@ -37,9 +35,13 @@ M.viewBind = {
   TocBuf = nil,
   BindBuf = nil,
   BindWin = nil,
+  changeTick = nil,
 }
 
 local bindBufGroup = vim.api.nvim_create_augroup("MdBindBufAutoCmd", {})
+local tocHlNameSpace = vim.api.nvim_create_namespace("tocHlNameSpace")
+
+-- local buildInEvent = { }
 
 function M.unbind()
   if M.viewBind.BindBuf then
@@ -64,7 +66,7 @@ local function create_side_window()
   vim.api.nvim_win_set_width(win, M.options.width)
   local buf = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_win_set_buf(win, buf)
-  for k,v in pairs(M.options.bufopts) do
+  for k, v in pairs(M.options.bufopts) do
     vim.api.nvim_buf_set_option(buf, k, v)
   end
   for k, v in pairs(M.options.winopts) do
@@ -84,16 +86,28 @@ local function add_indent_for_header(header)
 end
 
 local function reload_headers()
+  local change_flag = false
   if not M.viewBind.BindBuf then
-    return
+    return change_flag
   end
-  M.viewBind.MdHeaders = parser.get_heading_lines(vim.api.nvim_buf_get_lines(M.viewBind.BindBuf, 0, -1, false))
+  local current_change_tick = vim.api.nvim_buf_get_changedtick(M.viewBind.BindBuf)
+  if M.viewBind.MdHeaders == nil or (M.viewBind.changeTick ~= current_change_tick) then
+    M.viewBind.MdHeaders = parser.get_heading_lines(vim.api.nvim_buf_get_lines(M.viewBind.BindBuf, 0, -1, false))
+    change_flag = true
+  end
+  M.viewBind.changeTick = current_change_tick
+  return change_flag
 end
 
 local function render_headers()
+  -- get change flag, update headers
+  local change_flag = reload_headers()
+  if not change_flag then
+    return
+  end
+
+  -- start update
   vim.api.nvim_buf_set_option(M.viewBind.TocBuf, "modifiable", true)
-  reload_headers()
-  -- get header text
   local all_headers_with_indent = {}
   for _, header in ipairs(M.viewBind.MdHeaders) do
     table.insert(all_headers_with_indent, add_indent_for_header(header))
@@ -112,6 +126,7 @@ function M.jump_header()
   local header_index = math.min(vim.api.nvim_win_get_cursor(0)[1], #M.viewBind.MdHeaders)
   local line_number =
     math.min(M.viewBind.MdHeaders[header_index][1] + 1, vim.api.nvim_buf_line_count(M.viewBind.BindBuf))
+  vim.api.nvim_win_set_buf(M.viewBind.BindWin, M.viewBind.BindBuf)
   vim.api.nvim_set_current_win(M.viewBind.BindWin)
   vim.api.nvim_win_set_cursor(M.viewBind.BindWin, { line_number, 0 })
   vim.api.nvim_feedkeys("zz", "n", false)
@@ -125,6 +140,37 @@ function M.close(win)
   vim.api.nvim_win_close(win, true)
 end
 
+local function get_toc_index()
+  if not M.viewBind.MdHeaders then
+    return 1
+  end
+  local lineNumber = vim.api.nvim_win_get_cursor(M.viewBind.BindWin)[1]
+  local left = 1
+  local right = #M.viewBind.MdHeaders
+  if lineNumber < M.viewBind.MdHeaders[left][1] then
+    return 1
+  end
+  while left <= right do
+    local middle = math.floor((left + right) / 2)
+    local middleVal = M.viewBind.MdHeaders[middle][1] + 1
+    if middleVal == lineNumber then
+      return middle
+    elseif lineNumber > middleVal then
+      left = middle + 1
+    elseif lineNumber < middleVal then
+      right = middle - 1
+    end
+  end
+  return math.max(math.min(left, right), 0)
+end
+
+local function set_toc_position()
+  local index = get_toc_index()
+  vim.api.nvim_win_set_cursor(M.viewBind.TocWin, { index, 0 })
+  vim.api.nvim_buf_clear_namespace(M.viewBind.TocBuf, tocHlNameSpace, 0, -1)
+  vim.api.nvim_buf_add_highlight(M.viewBind.TocBuf, tocHlNameSpace, "Search", index - 1, 0, -1)
+end
+
 local function set_mappings()
   local mappings = {
     ["<cr>"] = M.jump_header,
@@ -134,11 +180,11 @@ local function set_mappings()
     r = function()
       local origin_position = vim.api.nvim_win_get_cursor(M.viewBind.TocWin)
       render_headers()
-      local new_line_number = vim.api.nvim_buf_line_count(M.viewBind.TocBuf)
-      if new_line_number == 0 then
+      local line_count = vim.api.nvim_buf_line_count(M.viewBind.TocBuf)
+      if line_count == 0 then
         return
       end
-      local row = math.min(new_line_number, origin_position[1])
+      local row = get_toc_index()
       local line = vim.api.nvim_buf_get_lines(M.viewBind.TocBuf, row - 1, row, false)[1]
       if line == nil then
         line = ""
@@ -159,8 +205,35 @@ local function set_autocmd()
       M.unbind()
     end,
   })
-  -- TODO: after write，reparse heading, and rerender
-  -- TODO: when move curosr，auto select side bar heading. (CursorHold event)
+  vim.api.nvim_create_autocmd("BufEnter", {
+    buffer = M.viewBind.TocBuf,
+    callback = function()
+      render_headers()
+      set_toc_position()
+    end,
+  })
+  vim.api.nvim_create_autocmd({ "BufWritePost" }, {
+    group = bindBufGroup,
+    buffer = M.viewBind.BindBuf,
+    callback = vim.schedule_wrap(function()
+      render_headers()
+      set_toc_position()
+    end),
+  })
+  vim.api.nvim_create_autocmd("CursorHold", {
+    group = bindBufGroup,
+    buffer = M.viewBind.BindBuf,
+    callback = vim.schedule_wrap(function()
+      set_toc_position()
+    end),
+  })
+end
+
+local function focus_origin_position()
+  if not M.viewBind.BindWin then
+    return
+  end
+  vim.api.nvim_set_current_win(M.viewBind.BindWin)
 end
 
 function M.open_side_window()
@@ -174,6 +247,7 @@ function M.open_side_window()
   render_headers()
   set_mappings()
   set_autocmd()
+  focus_origin_position()
 end
 
 function M.toggle()
