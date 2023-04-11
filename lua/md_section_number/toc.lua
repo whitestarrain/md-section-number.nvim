@@ -141,7 +141,7 @@ function M.close(win)
 end
 
 local function get_toc_index()
-  if not M.viewBind.MdHeaders then
+  if not M.viewBind.MdHeaders or #M.viewBind.MdHeaders == 0 then
     return 1
   end
   local lineNumber = vim.api.nvim_win_get_cursor(M.viewBind.BindWin)[1]
@@ -199,7 +199,7 @@ local function set_mappings()
 end
 
 local function set_autocmd()
-  vim.api.nvim_create_autocmd("WinClosed", {
+  vim.api.nvim_create_autocmd({ "WinClosed", "QuitPre" }, {
     buffer = M.viewBind.TocBuf,
     callback = function()
       M.unbind()
@@ -207,10 +207,10 @@ local function set_autocmd()
   })
   vim.api.nvim_create_autocmd("BufEnter", {
     buffer = M.viewBind.TocBuf,
-    callback = function()
+    callback = vim.schedule_wrap(function()
       render_headers()
       set_toc_position()
-    end,
+    end),
   })
   vim.api.nvim_create_autocmd({ "BufWritePost" }, {
     group = bindBufGroup,
