@@ -37,8 +37,10 @@ M.viewBind = {
   changeTick = nil,
 }
 
-local bindBufEventGroup = vim.api.nvim_create_augroup("MSNbindBufEventGroup", { clear = true })
-local globalEventGroup = vim.api.nvim_create_augroup("MSNGlobalEventGroup ", { clear = true })
+local bindBufGroupName = "MSNbindBufEventGroup"
+local tocBufGroupName = "MSNtocBufEventGroup"
+local globalGroupName = "MSNGlobalEventGroup"
+
 local tocHlNameSpace = vim.api.nvim_create_namespace("tocHlNameSpace")
 local markdownFileType = { markdown = true, md = true }
 local move_tbl = {
@@ -49,7 +51,7 @@ local move_tbl = {
 -- local buildInEvent = { }
 
 local function clear_all_autocmd()
-  for _, group in ipairs({ bindBufEventGroup, globalEventGroup }) do
+  for _, group in ipairs({ bindBufGroupName, tocBufGroupName, globalGroupName }) do
     vim.api.nvim_clear_autocmds({
       group = group,
       buffer = M.viewBind.BindBuf,
@@ -202,10 +204,7 @@ local function set_mappings()
 end
 
 local function set_bind_buf_autocmd()
-    vim.api.nvim_clear_autocmds({
-      group = bindBufEventGroup,
-      buffer = M.viewBind.BindBuf,
-    })
+  local bindBufEventGroup = vim.api.nvim_create_augroup(bindBufGroupName, { clear = true })
   vim.api.nvim_create_autocmd({ "BufWritePost" }, {
     group = bindBufEventGroup,
     buffer = M.viewBind.BindBuf,
@@ -224,13 +223,16 @@ local function set_bind_buf_autocmd()
 end
 
 local function set_toc_buf_autocmd()
+  local tocBufEventGroup = vim.api.nvim_create_augroup(tocBufGroupName, { clear = true })
   vim.api.nvim_create_autocmd({ "WinClosed", "QuitPre" }, {
+    group = tocBufGroupName,
     buffer = M.viewBind.TocBuf,
     callback = function()
       M.unbind()
     end,
   })
   vim.api.nvim_create_autocmd("BufEnter", {
+    group = tocBufGroupName,
     buffer = M.viewBind.TocBuf,
     callback = vim.schedule_wrap(function()
       render_headers()
@@ -273,6 +275,8 @@ local function set_autocmd()
   -- bind buf autocmd
   set_bind_buf_autocmd()
   -- global autocmd
+
+  local globalEventGroup = vim.api.nvim_create_augroup(globalGroupName, { clear = true })
   vim.api.nvim_create_autocmd("BufEnter", {
     group = globalEventGroup,
     pattern = "*.md,*.markdown",
