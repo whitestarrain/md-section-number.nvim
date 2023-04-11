@@ -201,6 +201,44 @@ local function set_mappings()
   end
 end
 
+local function set_bind_buf_autocmd()
+    vim.api.nvim_clear_autocmds({
+      group = bindBufEventGroup,
+      buffer = M.viewBind.BindBuf,
+    })
+  vim.api.nvim_create_autocmd({ "BufWritePost" }, {
+    group = bindBufEventGroup,
+    buffer = M.viewBind.BindBuf,
+    callback = vim.schedule_wrap(function()
+      render_headers()
+      set_toc_position()
+    end),
+  })
+  vim.api.nvim_create_autocmd("CursorHold", {
+    group = bindBufEventGroup,
+    buffer = M.viewBind.BindBuf,
+    callback = vim.schedule_wrap(function()
+      set_toc_position()
+    end),
+  })
+end
+
+local function set_toc_buf_autocmd()
+  vim.api.nvim_create_autocmd({ "WinClosed", "QuitPre" }, {
+    buffer = M.viewBind.TocBuf,
+    callback = function()
+      M.unbind()
+    end,
+  })
+  vim.api.nvim_create_autocmd("BufEnter", {
+    buffer = M.viewBind.TocBuf,
+    callback = vim.schedule_wrap(function()
+      render_headers()
+      set_toc_position()
+    end),
+  })
+end
+
 local function switch_bind()
   -- no toc
   if not M.viewBind.TocBuf then
@@ -225,38 +263,16 @@ local function switch_bind()
   if bind_buf ~= M.viewBind.BindWin then
     M.viewBind.BindWin = bind_win
   end
+  set_bind_buf_autocmd()
   set_toc_position()
 end
 
 local function set_autocmd()
-  vim.api.nvim_create_autocmd({ "WinClosed", "QuitPre" }, {
-    buffer = M.viewBind.TocBuf,
-    callback = function()
-      M.unbind()
-    end,
-  })
-  vim.api.nvim_create_autocmd("BufEnter", {
-    buffer = M.viewBind.TocBuf,
-    callback = vim.schedule_wrap(function()
-      render_headers()
-      set_toc_position()
-    end),
-  })
-  vim.api.nvim_create_autocmd({ "BufWritePost" }, {
-    group = bindBufEventGroup,
-    buffer = M.viewBind.BindBuf,
-    callback = vim.schedule_wrap(function()
-      render_headers()
-      set_toc_position()
-    end),
-  })
-  vim.api.nvim_create_autocmd("CursorHold", {
-    group = bindBufEventGroup,
-    buffer = M.viewBind.BindBuf,
-    callback = vim.schedule_wrap(function()
-      set_toc_position()
-    end),
-  })
+  -- toc buf autocmd
+  set_toc_buf_autocmd()
+  -- bind buf autocmd
+  set_bind_buf_autocmd()
+  -- global autocmd
   vim.api.nvim_create_autocmd("BufEnter", {
     group = globalEventGroup,
     pattern = "*.md,*.markdown",
