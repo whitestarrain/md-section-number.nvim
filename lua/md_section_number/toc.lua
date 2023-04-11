@@ -29,7 +29,6 @@ function M.setup(opts)
 end
 
 M.viewBind = {
-  MdBufNumber = nil,
   MdHeaders = nil,
   TocWin = nil,
   TocBuf = nil,
@@ -38,25 +37,30 @@ M.viewBind = {
   changeTick = nil,
 }
 
-local bindBufGroup = vim.api.nvim_create_augroup("MdBindBufAutoCmd", {})
+local bindBufEventGroup = vim.api.nvim_create_augroup("MSNbindBufEventGroup", { clear = true })
+local globalEventGroup = vim.api.nvim_create_augroup("MSNGlobalEventGroup ", { clear = true })
 local tocHlNameSpace = vim.api.nvim_create_namespace("tocHlNameSpace")
-
--- local buildInEvent = { }
-
-function M.unbind()
-  if M.viewBind.BindBuf then
-    vim.api.nvim_clear_autocmds({
-      group = bindBufGroup,
-      buffer = M.viewBind.BindBuf,
-    })
-  end
-  M.viewBind = {}
-end
-
+local markdownFileType = { markdown = true, md = true }
 local move_tbl = {
   left = "H",
   right = "L",
 }
+
+-- local buildInEvent = { }
+
+local function clear_all_autocmd()
+  for _, group in ipairs({ bindBufEventGroup, globalEventGroup }) do
+    vim.api.nvim_clear_autocmds({
+      group = group,
+      buffer = M.viewBind.BindBuf,
+    })
+  end
+end
+
+function M.unbind()
+  clear_all_autocmd()
+  M.viewBind = {}
+end
 
 local function create_side_window()
   vim.cmd("vsplit")
@@ -105,7 +109,6 @@ local function render_headers()
   if not change_flag then
     return
   end
-
   -- start update
   vim.api.nvim_buf_set_option(M.viewBind.TocBuf, "modifiable", true)
   local all_headers_with_indent = {}
@@ -119,7 +122,7 @@ local function render_headers()
   vim.api.nvim_buf_set_option(M.viewBind.TocBuf, "modifiable", false)
 end
 
-function M.jump_header()
+local function jump_header()
   if not M.viewBind.MdHeaders then
     reload_headers()
   end
@@ -173,7 +176,7 @@ end
 
 local function set_mappings()
   local mappings = {
-    ["<cr>"] = M.jump_header,
+    ["<cr>"] = jump_header,
     q = function()
       M.close(M.viewBind.TocWin)
     end,
@@ -198,6 +201,33 @@ local function set_mappings()
   end
 end
 
+local function switch_bind()
+  -- no toc
+  if not M.viewBind.TocBuf then
+    return
+  end
+  -- filetype judgment
+  local filetype = vim.api.nvim_buf_get_option(0, "filetype")
+  if not markdownFileType[filetype] then
+    M.viewBind.MdHeaders = {}
+    return
+  end
+  local bind_buf = vim.api.nvim_get_current_buf()
+  local bind_win = vim.api.nvim_get_current_win()
+  if bind_buf == M.viewBind.BindBuf and bind_win == M.viewBind.BindWin then
+    return
+  end
+  if bind_buf ~= M.viewBind.BindBuf then
+    M.viewBind.BindBuf = bind_buf
+    M.viewBind.MdHeaders = nil
+    render_headers()
+  end
+  if bind_buf ~= M.viewBind.BindWin then
+    M.viewBind.BindWin = bind_win
+  end
+  set_toc_position()
+end
+
 local function set_autocmd()
   vim.api.nvim_create_autocmd({ "WinClosed", "QuitPre" }, {
     buffer = M.viewBind.TocBuf,
@@ -213,7 +243,7 @@ local function set_autocmd()
     end),
   })
   vim.api.nvim_create_autocmd({ "BufWritePost" }, {
-    group = bindBufGroup,
+    group = bindBufEventGroup,
     buffer = M.viewBind.BindBuf,
     callback = vim.schedule_wrap(function()
       render_headers()
@@ -221,11 +251,16 @@ local function set_autocmd()
     end),
   })
   vim.api.nvim_create_autocmd("CursorHold", {
-    group = bindBufGroup,
+    group = bindBufEventGroup,
     buffer = M.viewBind.BindBuf,
     callback = vim.schedule_wrap(function()
       set_toc_position()
     end),
+  })
+  vim.api.nvim_create_autocmd("BufEnter", {
+    group = globalEventGroup,
+    pattern = "*.md,*.markdown",
+    callback = vim.schedule_wrap(switch_bind),
   })
 end
 
