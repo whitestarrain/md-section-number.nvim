@@ -124,27 +124,6 @@ local function render_headers()
   vim.api.nvim_buf_set_option(M.viewBind.TocBuf, "modifiable", false)
 end
 
-local function jump_header()
-  if not M.viewBind.MdHeaders then
-    reload_headers()
-  end
-  local header_index = math.min(vim.api.nvim_win_get_cursor(0)[1], #M.viewBind.MdHeaders)
-  local line_number =
-    math.min(M.viewBind.MdHeaders[header_index][1] + 1, vim.api.nvim_buf_line_count(M.viewBind.BindBuf))
-  vim.api.nvim_win_set_buf(M.viewBind.BindWin, M.viewBind.BindBuf)
-  vim.api.nvim_set_current_win(M.viewBind.BindWin)
-  vim.api.nvim_win_set_cursor(M.viewBind.BindWin, { line_number, 0 })
-  vim.api.nvim_feedkeys("zz", "n", false)
-end
-
-function M.close(win)
-  if not win then
-    return
-  end
-  M.unbind()
-  vim.api.nvim_win_close(win, true)
-end
-
 local function get_toc_index()
   if not M.viewBind.MdHeaders or #M.viewBind.MdHeaders == 0 then
     return 1
@@ -174,6 +153,28 @@ local function set_toc_position()
   vim.api.nvim_win_set_cursor(M.viewBind.TocWin, { index, 0 })
   vim.api.nvim_buf_clear_namespace(M.viewBind.TocBuf, tocHlNameSpace, 0, -1)
   vim.api.nvim_buf_add_highlight(M.viewBind.TocBuf, tocHlNameSpace, "Search", index - 1, 0, -1)
+end
+
+local function jump_header()
+  if not M.viewBind.MdHeaders then
+    reload_headers()
+  end
+  local header_index = math.min(vim.api.nvim_win_get_cursor(0)[1], #M.viewBind.MdHeaders)
+  local line_number =
+    math.min(M.viewBind.MdHeaders[header_index][1] + 1, vim.api.nvim_buf_line_count(M.viewBind.BindBuf))
+  vim.api.nvim_win_set_buf(M.viewBind.BindWin, M.viewBind.BindBuf)
+  vim.api.nvim_set_current_win(M.viewBind.BindWin)
+  vim.api.nvim_win_set_cursor(M.viewBind.BindWin, { line_number, 0 })
+  vim.api.nvim_feedkeys("zz", "n", false)
+  set_toc_position()
+end
+
+function M.close(win)
+  if not win then
+    return
+  end
+  M.unbind()
+  vim.api.nvim_win_close(win, true)
 end
 
 local function set_mappings()
@@ -225,14 +226,14 @@ end
 local function set_toc_buf_autocmd()
   local tocBufEventGroup = vim.api.nvim_create_augroup(tocBufGroupName, { clear = true })
   vim.api.nvim_create_autocmd({ "WinClosed", "QuitPre" }, {
-    group = tocBufGroupName,
+    group = tocBufEventGroup,
     buffer = M.viewBind.TocBuf,
     callback = function()
       M.unbind()
     end,
   })
   vim.api.nvim_create_autocmd("BufEnter", {
-    group = tocBufGroupName,
+    group = tocBufEventGroup,
     buffer = M.viewBind.TocBuf,
     callback = vim.schedule_wrap(function()
       render_headers()
@@ -249,7 +250,6 @@ local function switch_bind()
   -- filetype judgment
   local filetype = vim.api.nvim_buf_get_option(0, "filetype")
   if not markdownFileType[filetype] then
-    M.viewBind.MdHeaders = {}
     return
   end
   local bind_buf = vim.api.nvim_get_current_buf()
