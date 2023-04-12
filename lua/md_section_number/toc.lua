@@ -18,7 +18,7 @@ M.options = {
   },
   bufopts = {
     bufhidden = "wipe",
-    filetype = "MSNumber",
+    filetype = "msnumber",
     modifiable = false,
   },
 }
