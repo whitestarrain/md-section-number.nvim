@@ -170,11 +170,11 @@ local function jump_header()
 end
 
 function M.closeToc()
-  if not M.viewBind.BindWin then
+  if not M.viewBind.TocWin then
     return
   end
+  vim.api.nvim_win_close(M.viewBind.TocWin, true)
   M.unbind()
-  vim.api.nvim_win_close(M.viewBind.BindWin, true)
 end
 
 local function set_mappings()
@@ -236,7 +236,7 @@ local function set_toc_buf_autocmd()
     group = tocBufEventGroup,
     buffer = M.viewBind.TocBuf,
     callback = vim.schedule_wrap(function()
-      local currentBuf =  vim.api.nvim_win_get_buf(M.viewBind.BindWin)
+      local currentBuf = vim.api.nvim_win_get_buf(M.viewBind.BindWin)
       if currentBuf ~= M.viewBind.BindBuf then
         return
       end
