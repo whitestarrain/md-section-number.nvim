@@ -236,6 +236,10 @@ local function set_toc_buf_autocmd()
     group = tocBufEventGroup,
     buffer = M.viewBind.TocBuf,
     callback = vim.schedule_wrap(function()
+      local currentBuf =  vim.api.nvim_win_get_buf(M.viewBind.BindWin)
+      if currentBuf ~= M.viewBind.BindBuf then
+        return
+      end
       render_headers()
       set_toc_position()
     end),
