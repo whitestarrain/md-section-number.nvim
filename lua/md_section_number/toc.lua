@@ -18,7 +18,7 @@ M.options = {
   },
   bufopts = {
     bufhidden = "wipe",
-    filetype = "tagbar",
+    filetype = "MSNumber",
     modifiable = false,
   },
 }
