@@ -169,19 +169,19 @@ local function jump_header()
   set_toc_position()
 end
 
-function M.close(win)
-  if not win then
+function M.closeToc()
+  if not M.viewBind.BindWin then
     return
   end
   M.unbind()
-  vim.api.nvim_win_close(win, true)
+  vim.api.nvim_win_close(M.viewBind.BindWin, true)
 end
 
 local function set_mappings()
   local mappings = {
     ["<cr>"] = jump_header,
     q = function()
-      M.close(M.viewBind.TocWin)
+      M.closeToc()
     end,
     r = function()
       local origin_position = vim.api.nvim_win_get_cursor(M.viewBind.TocWin)
@@ -295,7 +295,10 @@ local function focus_origin_position()
   vim.api.nvim_set_current_win(M.viewBind.BindWin)
 end
 
-function M.open_side_window()
+function M.openToc()
+  if M.viewBind.TocWin then
+    return
+  end
   M.viewBind.BindBuf = vim.api.nvim_get_current_buf()
   M.viewBind.BindWin = vim.api.nvim_get_current_win()
 
@@ -311,11 +314,10 @@ end
 
 function M.toggle()
   if M.viewBind.TocWin then
-    M.close(M.viewBind.TocWin)
+    M.closeToc()
   else
-    M.open_side_window()
+    M.openToc()
   end
 end
 
--- TODO: when switch to other buffer，reload or close side window. (global event)
 return M
