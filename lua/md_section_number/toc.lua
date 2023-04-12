@@ -132,7 +132,10 @@ local function get_toc_index()
   local left = 1
   local right = #M.viewBind.MdHeaders
   if lineNumber < M.viewBind.MdHeaders[left][1] then
-    return 1
+    return left
+  end
+  if lineNumber > M.viewBind.MdHeaders[right][1] then
+    return right
   end
   while left <= right do
     local middle = math.floor((left + right) / 2)
@@ -145,7 +148,7 @@ local function get_toc_index()
       right = middle - 1
     end
   end
-  return math.max(math.min(left, right), 0)
+  return math.max(math.min(left, right), 1)
 end
 
 local function set_toc_position()
