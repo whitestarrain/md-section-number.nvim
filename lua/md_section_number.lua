@@ -10,6 +10,12 @@ local DEFAULT_OPTS = {
     { "\\~\\~\\~", "\\~\\~\\~" },
     { "<!--", "-->" },
   },
+  toc = {
+    width = 30,
+    position = "right",
+    indent_space_number = 2,
+    header_prefix = "- ",
+  },
 }
 
 local function merge_options(conf)
@@ -28,8 +34,12 @@ end
 
 function M.setup(conf)
   local opts = merge_options(conf)
+  if not opts then
+    return
+  end
   parser.setup(opts)
   replacer.setup(opts)
+  toc.setup(opts.toc)
 end
 
 local function get_headings(...)

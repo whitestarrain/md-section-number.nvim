@@ -24,8 +24,7 @@ M.options = {
 }
 
 function M.setup(opts)
-  M.options.width = opts.width or M.options.width
-  M.options.position = opts.position or M.options.position
+  M.options = vim.tbl_deep_extend("force", M.options, opts or {})
 end
 
 M.viewBind = {
