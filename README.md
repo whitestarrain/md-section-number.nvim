@@ -39,19 +39,11 @@ require("md_section_number").setup({
 - `:MDUpdateNumber`
 - `:HeaderDecrease `
 - `:HeaderIncrease `
-
-# developing
-
-> developing functions, but can try using
-
 - `:MdTocToggle`: open a markdown toc
-  - why:
-    - when i use tagbar with this [config_file](https://github.com/whitestarrain/dotfiles/blob/master/nvim/others/.ctags.d/markdown.ctags), ctags recognizes `#include` as a title
-  - mappings:
-    - r: update
-    - q: quit
-    - enter: jump
-  - todo
-    - after write，reparse heading, and rerender
-    - when move curosr，auto select the heading that in side window.
-    - when switch to other buffer，reload side window.
+
+  ```
+  mapping:
+    r: update
+    q: quit
+    enter: jump
+  ```
