@@ -11,7 +11,6 @@ M.options = {
     number = false,
     relativenumber = false,
     wrap = false,
-    equalalways = false,
     winfixwidth = true,
     list = false,
     spell = false,
