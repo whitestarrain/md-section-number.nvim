@@ -222,6 +222,13 @@ local function set_bind_buf_autocmd()
       set_toc_position()
     end),
   })
+  vim.api.nvim_create_autocmd("WinClosed", {
+    group = bindBufEventGroup,
+    buffer = M.viewBind.BindBuf,
+    callback = vim.schedule_wrap(function()
+      M.closeToc()
+    end),
+  })
 end
 
 local function set_toc_buf_autocmd()
@@ -286,6 +293,17 @@ local function set_autocmd()
     group = globalEventGroup,
     pattern = "*.md,*.markdown",
     callback = vim.schedule_wrap(switch_bind),
+  })
+  vim.api.nvim_create_autocmd("WinEnter", {
+    group = tocBufEventGroup,
+    pattern = "*.md,*.markdown",
+    callback = vim.schedule_wrap(function()
+      local currentBuf = vim.api.nvim_win_get_buf(0)
+      if currentBuf == M.viewBind.BindBuf then
+        M.viewBind.BindWin = vim.api.nvim_get_current_win()
+        return
+      end
+    end),
   })
 end
 
