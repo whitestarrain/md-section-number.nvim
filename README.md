@@ -1,49 +1,70 @@
-# Example
+# md-section-number
+
+**md-section-number** is a plugin for the Neovim text editor that allows you to automatically add and update heading levels for header numbers in Markdown files. This is especially useful for those writing long markdown documents with multiple levels of headers.
 
 ![](./image/show.gif)
 
-# About
+## Requirements
 
-A plugin to update heading number and change heading level for markdown
+- `neovim` >= 0.7
 
-# Requires
+### Installation
 
-- `neovim`>=0.7
+Install the plugin with your favorite package manager:
 
-# Install
+ - [Vim-plug](https://github.com/junegunn/vim-plug)
 
-- vim-plug
+    ```lua
+    Plug "whitestarrain/md-section-number.nvim"
+    ```
 
-  ```
-  Plug 'whitestarrain/md-section-number.nvim'
-  ```
+ - [lazy.nvim](https://github.com/folke/lazy.nvim)
 
-# SetUpp
+    ```lua
+    {
+        "whitestarrain/md-section-number.nvim",
+        ft = "markdown",
+        config = function()
+            require("md_section_number").setup()
+        end
+    }
+    ```
+
+## Configuration
+
+This plugin comes with the following defaults:
 
 ```lua
-require("md_section_number").setup({
---[[
-  max_level = 4,
-  ignore_pairs = {
-    { "```", "```" },
-    { "\\~\\~\\~", "\\~\\~\\~" },
-    { "<!--", "-->" },
-  },
-]]
-})
+{
+    max_level = 4,
+    ignore_pairs = {
+        { "```", "```" },
+        { "\\~\\~\\~", "\\~\\~\\~" },
+        { "<!--", "-->" },
+    },
+    toc = {
+        width = 30,
+        position = "right",
+        indent_space_number = 2,
+        header_prefix = "- ",
+    },
+}
 ```
 
-# Use
+### Commands
 
-- `:MDClearNumber`
-- `:MDUpdateNumber`
-- `:HeaderDecrease `
-- `:HeaderIncrease `
-- `:MdTocToggle`: open a markdown toc
+| Command          | Description                            |
+| ---------------  | -------------------------------------- |
+| `:MdClearNumber` | Delete all the header level numbers.        |
+| `:MdUpdateNumber`| Add or update all the header level numbers. |
+| `:MdHeaderDecrease`| Decrease a header level.                  |
+| `:MdHeaderIncrease`| Increase a header level.                  |
+| `:MdTocToggle`   | View the table of contents.                 |
 
-  ```
-  mapping:
-    r: update
-    q: quit
-    enter: jump
-  ```
+### Keybindings
+
+* For the table of contents:
+    * `r` - Update.
+    * `q` - Quit.
+    * `enter` - Jump.
+

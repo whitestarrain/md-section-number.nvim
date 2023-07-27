@@ -23,10 +23,10 @@ function MdTocToggle()
   call v:lua.require('md_section_number').toggle_toc()
 endfunction
 
-command! -buffer -range=% MDUpdateNumber call MdUpdateHeadingNumber(<line1>,<line2>)
-command! -buffer -range=% MDClearNumber call MdClearHeadingNumber(<line1>,<line2>)
-command! -buffer -range=% HeaderDecrease call MdHeaderDecrease(<line1>,<line2>)
-command! -buffer -range=% HeaderIncrease call MdHeaderIncrease(<line1>,<line2>)
+command! -buffer -range=% MdUpdateNumber call MdUpdateHeadingNumber(<line1>,<line2>)
+command! -buffer -range=% MdClearNumber call MdClearHeadingNumber(<line1>,<line2>)
+command! -buffer -range=% MdHeaderDecrease call MdHeaderDecrease(<line1>,<line2>)
+command! -buffer -range=% MdHeaderIncrease call MdHeaderIncrease(<line1>,<line2>)
 command! -buffer MdTocToggle call MdTocToggle()
 
 let b:md_section_number = 1
