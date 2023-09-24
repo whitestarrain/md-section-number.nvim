@@ -295,7 +295,7 @@ local function set_autocmd()
     callback = vim.schedule_wrap(switch_bind),
   })
   vim.api.nvim_create_autocmd("WinEnter", {
-    group = tocBufEventGroup,
+    group = globalEventGroup,
     pattern = "*.md,*.markdown",
     callback = vim.schedule_wrap(function()
       local currentBuf = vim.api.nvim_win_get_buf(0)
