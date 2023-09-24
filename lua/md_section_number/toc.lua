@@ -226,6 +226,9 @@ local function set_bind_buf_autocmd()
     group = bindBufEventGroup,
     buffer = M.viewBind.BindBuf,
     callback = vim.schedule_wrap(function()
+      if vim.api.nvim_get_current_win() == M.viewBind.TocWin then
+        return
+      end
       M.closeToc()
     end),
   })
@@ -304,6 +307,11 @@ local function set_autocmd()
         return
       end
     end),
+  })
+  vim.api.nvim_create_autocmd("QuitPre", {
+    group = globalEventGroup,
+    pattern = "*.md,*.markdown",
+    callback = vim.schedule_wrap(M.closeToc),
   })
 end
 
