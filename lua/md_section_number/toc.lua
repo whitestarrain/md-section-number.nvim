@@ -49,12 +49,14 @@ local move_tbl = {
 -- local buildInEvent = { }
 
 local function clear_all_autocmd()
-  for _, group in ipairs({ bindBufGroupName, tocBufGroupName, globalGroupName }) do
-    vim.api.nvim_clear_autocmds({
-      group = group,
-      buffer = M.viewBind.BindBuf,
-    })
+  local check_buf_valid = function(buf_id) return  buf_id ~= nil and vim.api.nvim_buf_is_valid(buf_id)  end
+  if check_buf_valid(M.viewBind.BindBuf) then
+    vim.api.nvim_clear_autocmds({ group = bindBufGroupName, buffer = M.viewBind.BindBuf })
   end
+  if check_buf_valid(M.viewBind.TocBuf) then
+    vim.api.nvim_clear_autocmds({ group = tocBufGroupName, buffer = M.viewBind.TocBuf })
+  end
+  vim.api.nvim_clear_autocmds({ group = globalGroupName })
 end
 
 function M.unbind()
@@ -247,6 +249,11 @@ local function set_toc_buf_autocmd()
     group = tocBufEventGroup,
     buffer = M.viewBind.TocBuf,
     callback = vim.schedule_wrap(function()
+      if M.viewBind.BindWin == nil or not vim.api.nvim_win_is_valid(M.viewBind.BindWin) then
+        M.unbind()
+        return
+      end
+
       local currentBuf = vim.api.nvim_win_get_buf(M.viewBind.BindWin)
       if currentBuf ~= M.viewBind.BindBuf then
         return
@@ -311,7 +318,19 @@ local function set_autocmd()
   vim.api.nvim_create_autocmd("QuitPre", {
     group = globalEventGroup,
     pattern = "*.md,*.markdown",
-    callback = vim.schedule_wrap(M.closeToc),
+    callback = vim.schedule_wrap(function()
+      local wins = vim.api.nvim_tabpage_list_wins(vim.api.nvim_get_current_tabpage())
+      local non_essential_window_flag = #wins == 1 and wins[1] == M.viewBind.TocWin
+
+      -- support for some session function(like vim-startify)
+      if non_essential_window_flag then
+        local current_buf = M.viewBind.BindBuf
+        local toc_win = M.viewBind.TocWin
+        M.unbind()
+        vim.api.nvim_set_current_buf(current_buf)
+        vim.cmd(":quit")
+      end
+    end),
   })
 end
 
