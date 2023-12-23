@@ -4,6 +4,8 @@
 
 ![](./image/show.gif)
 
+![](./image/toc_bar.png)
+
 ## Requirements
 
 - `neovim` >= 0.7
