@@ -2,6 +2,7 @@ local M = {}
 
 M.heading_number_base_pattern = "%d+%."
 M.max_level = 4
+M.min_level = 1
 
 local function get_heading_number_index(str)
   local pattern = M.heading_number_base_pattern
@@ -27,7 +28,7 @@ function M.replaceHeadingNumber(source_heading, heading_number, level, is_clear)
   if is_clear then
     max_level = 0
   end
-  if level > max_level then
+  if level > max_level or level < M.min_level then
     heading_number = ""
   end
   if string.len(heading_number) > 0 then
@@ -69,7 +70,7 @@ function M.insert_heading_number(heading_lines)
 
     ::continue::
     local heading_number = ""
-    for j = 1, level do
+    for j = M.min_level, level do
       heading_number = heading_number .. (level_depth[j] or 0) .. "."
     end
     table.insert(heading_lines[i], heading_number)
@@ -103,6 +104,13 @@ end
 
 function M.setup(opts)
   M.max_level = opts.max_level or M.max_level
+  if M.max_level < 0 then
+    M.max_level = 4
+  end
+  M.min_level = opts.min_level or M.min_level
+  if M.min_level < 1 then
+    M.min_level = 1
+  end
 end
 
 return M

@@ -1,5 +1,6 @@
-local parser = require("md_section_number.parser")
-local replacer = require("md_section_number.replacer")
+local parser = require("md_section_number.heading.parser")
+local replacer = require("md_section_number.heading.replacer")
+local toc = require("md_section_number.toc")
 local M = {}
 
 local DEFAULT_OPTS = {
@@ -8,6 +9,12 @@ local DEFAULT_OPTS = {
     { "```", "```" },
     { "\\~\\~\\~", "\\~\\~\\~" },
     { "<!--", "-->" },
+  },
+  toc = {
+    width = 30,
+    position = "right",
+    indent_space_number = 2,
+    header_prefix = "- ",
   },
 }
 
@@ -27,8 +34,12 @@ end
 
 function M.setup(conf)
   local opts = merge_options(conf)
+  if not opts then
+    return
+  end
   parser.setup(opts)
   replacer.setup(opts)
+  toc.setup(opts.toc)
 end
 
 local function get_headings(...)
@@ -36,7 +47,7 @@ local function get_headings(...)
   local heading_lines = {}
   if select("#", ...) == 3 then
     local start_line, end_line, offset = ...
-    for index, heading in ipairs(origin_heading_lines) do
+    for _, heading in ipairs(origin_heading_lines) do
       if judge_heading_by_line_number(start_line, end_line, heading[1] + 1) then
         table.insert(heading_lines, replacer.change_heading_level(heading, offset))
       else
@@ -85,6 +96,10 @@ end
 
 function M.header_increase(firstline, lastline)
   M._update_heading_number(true, firstline, lastline, 1)
+end
+
+function M.toggle_toc()
+  toc.toggle()
 end
 
 return M
