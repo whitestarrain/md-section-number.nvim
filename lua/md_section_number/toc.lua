@@ -247,6 +247,8 @@ local function set_mappings()
       end
       local col = math.min(#line, origin_position[2])
       vim.api.nvim_win_set_cursor(M.viewBind.TocWin, { row, col })
+      vim.api.nvim_buf_clear_namespace(M.viewBind.TocBuf, tocHlNameSpace, 0, -1)
+      vim.api.nvim_buf_add_highlight(M.viewBind.TocBuf, tocHlNameSpace, "Search", row - 1, 0, -1)
     end,
     ["h"] = change_display_level(-1),
     ["l"] = change_display_level(1),
@@ -332,7 +334,8 @@ local function switch_bind()
   end
   if bind_buf ~= M.viewBind.BindBuf then
     M.viewBind.BindBuf = bind_buf
-    M.viewBind.MdHeaders = nil
+    M.viewBind.allMdHeaders = nil
+    M.viewBind.displayLevel = nil
     render_headers()
   end
   if bind_buf ~= M.viewBind.BindWin then
