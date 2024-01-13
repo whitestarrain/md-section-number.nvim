@@ -5,6 +5,7 @@ local M = {}
 
 local DEFAULT_OPTS = {
   max_level = 4,
+  min_level = 1,
   ignore_pairs = {
     { "```", "```" },
     { "\\~\\~\\~", "\\~\\~\\~" },
@@ -15,6 +16,7 @@ local DEFAULT_OPTS = {
     position = "right",
     indent_space_number = 2,
     header_prefix = "- ",
+    toc_level = 6,
   },
 }
 

@@ -4,7 +4,7 @@
 
 ![](./image/show.gif)
 
-![](./image/toc_bar.png)
+![](./image/toc.gif)
 
 ## Requirements
 
@@ -70,4 +70,9 @@ This plugin comes with the following defaults:
     * `r` - Update.
     * `q` - Quit.
     * `enter` - Jump.
+    * header's max display level
+      * `h` - reduce header's max display level.
+      * `l` - increase header's max display level.
+      * `W` - Collapse all.
+      * `E` - Expand all.
 

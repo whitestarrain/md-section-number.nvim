@@ -7,6 +7,7 @@ M.options = {
   position = "right",
   indent_space_number = 2,
   header_prefix = "- ",
+  default_display_level = 6,
   winopts = {
     number = false,
     relativenumber = false,
@@ -28,11 +29,16 @@ end
 
 M.viewBind = {
   MdHeaders = nil,
+  displayLevel = nil,
   TocWin = nil,
   TocBuf = nil,
   BindBuf = nil,
   BindWin = nil,
   changeTick = nil,
+
+  -- stat
+  allMdHeaders = nil,
+  maxLevel = nil,
 }
 
 local bindBufGroupName = "MSNbindBufEventGroup"
@@ -49,7 +55,9 @@ local move_tbl = {
 -- local buildInEvent = { }
 
 local function clear_all_autocmd()
-  local check_buf_valid = function(buf_id) return  buf_id ~= nil and vim.api.nvim_buf_is_valid(buf_id)  end
+  local check_buf_valid = function(buf_id)
+    return buf_id ~= nil and vim.api.nvim_buf_is_valid(buf_id)
+  end
   if check_buf_valid(M.viewBind.BindBuf) then
     vim.api.nvim_clear_autocmds({ group = bindBufGroupName, buffer = M.viewBind.BindBuf })
   end
@@ -91,23 +99,53 @@ local function add_indent_for_header(header)
   return header_str
 end
 
-local function reload_headers()
+local function reload_headers(header_level_offset)
   local change_flag = false
+  header_level_offset = header_level_offset or 0
   if not M.viewBind.BindBuf then
     return change_flag
   end
   local current_change_tick = vim.api.nvim_buf_get_changedtick(M.viewBind.BindBuf)
-  if M.viewBind.MdHeaders == nil or (M.viewBind.changeTick ~= current_change_tick) then
-    M.viewBind.MdHeaders = parser.get_heading_lines(vim.api.nvim_buf_get_lines(M.viewBind.BindBuf, 0, -1, false))
+  if M.viewBind.allMdHeaders == nil or (M.viewBind.changeTick ~= current_change_tick) then
+    M.viewBind.allMdHeaders = parser.get_heading_lines(vim.api.nvim_buf_get_lines(M.viewBind.BindBuf, 0, -1, false))
+    local max_level = 1
+    for _, header in ipairs(M.viewBind.allMdHeaders) do
+      if header[3] > max_level then
+        max_level = header[3]
+      end
+    end
+    M.viewBind.maxLevel = max_level
     change_flag = true
   end
   M.viewBind.changeTick = current_change_tick
+
+  -- display level
+  local currentDisplayLevel = M.viewBind.displayLevel
+  if M.viewBind.displayLevel == nil then
+    M.viewBind.displayLevel = M.viewBind.maxLevel
+  end
+  if header_level_offset ~= 0 then
+    M.viewBind.displayLevel = math.max(1, math.min(M.viewBind.displayLevel + header_level_offset, M.viewBind.maxLevel))
+  end
+  if change_flag or currentDisplayLevel == nil or currentDisplayLevel ~= M.viewBind.displayLevel then
+    change_flag = true
+    local display_header = {}
+    for _, header in ipairs(M.viewBind.allMdHeaders) do
+      if header[3] > M.viewBind.displayLevel then
+        goto continue
+      end
+      table.insert(display_header, header)
+      ::continue::
+    end
+    M.viewBind.MdHeaders = display_header
+  end
+
   return change_flag
 end
 
-local function render_headers()
+local function render_headers(header_level_offset)
   -- get change flag, update headers
-  local change_flag = reload_headers()
+  local change_flag = reload_headers(header_level_offset)
   if not change_flag then
     return
   end
@@ -124,11 +162,11 @@ local function render_headers()
   vim.api.nvim_buf_set_option(M.viewBind.TocBuf, "modifiable", false)
 end
 
-local function get_toc_index()
+local function get_toc_index(lineNumber)
   if not M.viewBind.MdHeaders or #M.viewBind.MdHeaders == 0 then
     return 1
   end
-  local lineNumber = vim.api.nvim_win_get_cursor(M.viewBind.BindWin)[1]
+  lineNumber = lineNumber or vim.api.nvim_win_get_cursor(M.viewBind.BindWin)[1]
   local left = 1
   local right = #M.viewBind.MdHeaders
   if lineNumber < M.viewBind.MdHeaders[left][1] then
@@ -151,8 +189,8 @@ local function get_toc_index()
   return math.max(math.min(left, right), 1)
 end
 
-local function set_toc_position()
-  local index = get_toc_index()
+local function set_toc_position(contentLinenumber)
+  local index = get_toc_index(contentLinenumber)
   vim.api.nvim_win_set_cursor(M.viewBind.TocWin, { index, 0 })
   vim.api.nvim_buf_clear_namespace(M.viewBind.TocBuf, tocHlNameSpace, 0, -1)
   vim.api.nvim_buf_add_highlight(M.viewBind.TocBuf, tocHlNameSpace, "Search", index - 1, 0, -1)
@@ -181,6 +219,15 @@ function M.closeToc()
 end
 
 local function set_mappings()
+  local function change_display_level(levelOffset)
+    return function()
+      local header_index = vim.api.nvim_win_get_cursor(M.viewBind.TocWin)[1]
+      local content_linenumber = M.viewBind.MdHeaders[header_index][1] + 1
+      render_headers(levelOffset)
+      set_toc_position(content_linenumber)
+      vim.api.nvim_feedkeys("zz", "n", false)
+    end
+  end
   local mappings = {
     ["<cr>"] = jump_header,
     q = function()
@@ -201,6 +248,10 @@ local function set_mappings()
       local col = math.min(#line, origin_position[2])
       vim.api.nvim_win_set_cursor(M.viewBind.TocWin, { row, col })
     end,
+    ["h"] = change_display_level(-1),
+    ["l"] = change_display_level(1),
+    ["W"] = change_display_level(-5),
+    ["E"] = change_display_level(5),
   }
   for k, v in pairs(mappings) do
     vim.keymap.set("n", k, v, { buffer = M.viewBind.TocBuf, silent = true, noremap = true })
