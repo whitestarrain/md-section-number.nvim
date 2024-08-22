@@ -208,6 +208,8 @@ local function jump_header()
   vim.api.nvim_win_set_cursor(M.viewBind.BindWin, { line_number, 0 })
   vim.api.nvim_feedkeys("zz", "n", false)
   set_toc_position()
+  -- add to jump list
+  vim.cmd("normal! m'")
 end
 
 function M.closeToc()
