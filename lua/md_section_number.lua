@@ -6,6 +6,9 @@ local M = {}
 local DEFAULT_OPTS = {
   max_level = 4,
   min_level = 1,
+  start_section_number = 1,
+  start_subsection_number = 1,
+  remove_trailing_dot = false,
   ignore_pairs = {
     { "```", "```" },
     { "\\~\\~\\~", "\\~\\~\\~" },
